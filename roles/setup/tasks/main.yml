@@ -1,0 +1,49 @@
+# update apt packages
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+
+# upgrade packages
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: "remove dependencies that are not needed"
+  become: yes
+  apt:
+    autoremove: yes
+# install dependencies, such as NodeJS and NPM
+- name: "install dependencies, such as NodeJS and NPMs"
+  become: yes
+  apt:
+    name: ['nodejs', 'npm']
+    state: latest
+    update_cache: yes
+
+# install pm2 (Process Management Module)
+- name: 'install pm2'
+  become: yes
+  npm: 
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+# create a ~/web directory
+- name: 'create directory'
+  file:
+    path: ~/web
+    state: directory
+
+# copy index test page from files/index.js to ~/web/index.js
+- name: copy index test page
+  template:
+    src: "files/index.js"
+    dest: "~/web/index.js"
+
+# Start the web server using the command pm2 start ~/web/index.js -f
+- name: start web server
+  shell: |
+    pm2 start ~/web/index.js -f
