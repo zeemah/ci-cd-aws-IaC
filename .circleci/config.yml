@@ -2,24 +2,6 @@
 version: 2.1
 orbs: null
 jobs:
-    # Exercise: Infrastructure Creation
-    # Exercise - Rollback
-  # create_infrastructure: 
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Create Cloudformation Stack
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file template.yml \
-  #             --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
-  #             --region us-east-1
-      # Fail the job intentionally to simulate an error.
-      # Uncomment the line below if you want to fail the current step
-      # - run: return 1
-      # - destroy_environment
   configure_infrastructure:
     docker:
       - image: python:3.7-alpine3.11
@@ -35,9 +17,8 @@ jobs:
       - run:
           name: Run Playbook and Configure server
           command: |
-            ansible-playbook main-remote.yml -i inventory
+            ansible-playbook -i inventory main-remote.yml
 workflows:
   myWorkflow:
     jobs:
-      # - create_infrastructure 
       - configure_infrastructure
