@@ -1,21 +1,16 @@
 ---
 version: 2.1
 orbs: null
-
-commands: 
-  # Exercise - Rollback
+commands:
   destroy_environment:
     steps:
       - run:
           name: Destroy environment
-          # ${CIRCLE_WORKFLOW_ID} is a Built-in environment variable 
-          # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5}
-            
 jobs:
-  create_infrastructure: 
+  create_infrastructure:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -27,17 +22,19 @@ jobs:
               --template-file template.yml \
               --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
               --region us-east-1
-      - run: 
-          name: Getting Public IP from EC2 to inventory 
-          command:  |
-            aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory       
+      - run:
+          name: Getting Public IP from EC2 to inventory
+          command: |
+            aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory  
+
   configure_infrastructure:
     docker:
       - image: python:3.7-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["d8:93:b6:0a:e4:73:07:cd:f4:14:0f:1b:12:f3:53:6e"]
+          fingerprints:
+            - d8:93:b6:0a:e4:73:07:cd:f4:14:0f:1b:12:f3:53:6e
       - run:
           name: Install Ansible
           command: |
@@ -46,7 +43,6 @@ jobs:
           name: Run Playbook and Configure server
           command: |
             ansible-playbook -i inventory main-remote.yml
-
   smoke_test:
     docker:
       - image: alpine:latest
@@ -54,9 +50,17 @@ jobs:
       - run: apk add --update curl
       - run:
           name: smoke test
-          command: return 1
-      - destroy_environment     
-            
+          command: |
+            URL="https://blog.udacity.com/"
+              # Test if website exists
+              if curl -s --head ${URL} 
+              then
+                return 0
+              else
+                return 1
+              fi
+      - destroy_environment   
+     
 workflows:
   myWorkflow:
     jobs:
